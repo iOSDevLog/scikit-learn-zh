@@ -1,5 +1,3 @@
-.. -*- mode: rst -*-
-
 |Travis|_ |AppVeyor|_ |Codecov|_ |CircleCI|_ |Python27|_ |Python35|_ |PyPi|_ |DOI|_
 
 .. |Travis| image:: https://api.travis-ci.org/scikit-learn/scikit-learn.svg?branch=master
