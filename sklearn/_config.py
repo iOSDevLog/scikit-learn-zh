@@ -1,4 +1,4 @@
-"""Global configuration state and functions for management
+"""全局状态配置和功能管理
 """
 import os
 from contextlib import contextmanager as contextmanager
@@ -10,32 +10,32 @@ _global_config = {
 
 
 def get_config():
-    """Retrieve current values for configuration set by :func:`set_config`
+    """检索配置的当前值 by :func:`set_config`
 
     Returns
     -------
     config : dict
-        Keys are parameter names that can be passed to :func:`set_config`.
+        键是可以传递给  :func:`set_config` 的参数名
     """
     return _global_config.copy()
 
 
 def set_config(assume_finite=None, working_memory=None):
-    """Set global scikit-learn configuration
+    """设置全局 scikit-learn 配置
 
-    Parameters
+    参数
     ----------
-    assume_finite : bool, optional
-        If True, validation for finiteness will be skipped,
-        saving time, but leading to potential crashes. If
-        False, validation for finiteness will be performed,
-        avoiding error.  Global default: False.
+    assume_finite : bool, 可选
+        如果为True，将跳过有限性验证，
+        节省时间，但导致潜在的崩溃。
+        如果为False，将执行有限性验证，避免错误。
+        全局默认值： False。
 
-    working_memory : int, optional
-        If set, scikit-learn will attempt to limit the size of temporary arrays
-        to this number of MiB (per job when parallelised), often saving both
-        computation time and memory on expensive operations that can be
-        performed in chunks. Global default: 1024.
+    working_memory : int, 可选
+        如果设置
+        scikit-learn将尝试将临时数组的大小限制为此数量的MiB（并行化每个作业）
+        通常可以节省可以在块中执行的昂贵操作的计算时间和内存。
+        全局默认值：1024。
     """
     if assume_finite is not None:
         _global_config['assume_finite'] = assume_finite
@@ -45,27 +45,27 @@ def set_config(assume_finite=None, working_memory=None):
 
 @contextmanager
 def config_context(**new_config):
-    """Context manager for global scikit-learn configuration
+    """用于全局scikit-learn配置的上下文管理器
 
-    Parameters
+    参数
     ----------
-    assume_finite : bool, optional
-        If True, validation for finiteness will be skipped,
-        saving time, but leading to potential crashes. If
-        False, validation for finiteness will be performed,
-        avoiding error.  Global default: False.
+    assume_finite : bool, 可选
+        如果为True，
+        将跳过有限性验证，从而节省时间，但会导致潜在的崩溃。
+        如果为False，将执行有限性验证，避免错误。
+        全局默认值： False。
 
-    working_memory : int, optional
-        If set, scikit-learn will attempt to limit the size of temporary arrays
-        to this number of MiB (per job when parallelised), often saving both
-        computation time and memory on expensive operations that can be
-        performed in chunks. Global default: 1024.
+    working_memory : int, 可选
+        如果设置
+        scikit-learn将尝试将临时数组的大小限制为此数量的MiB（并行化每个作业）
+        通常可以节省可以在块中执行的昂贵操作的计算时间和内存。
+        全局默认值：1024。
 
-    Notes
+    注释
     -----
-    All settings, not just those presently modified, will be returned to
-    their previous values when the context manager is exited. This is not
-    thread-safe.
+    退出上下文管理器时
+    所有设置（不仅是当前修改的设置）都将返回到先前的值。
+    这不是线程安全的。
 
     Examples
     --------
