@@ -16,12 +16,12 @@ def configuration(parent_package='', top_path=None):
 
     config = Configuration('sklearn', parent_package, top_path)
 
-    # submodules with build utilities
+    # 子模块与构建实用程序
     config.add_subpackage('__check_build')
     config.add_subpackage('_build_utils')
 
-    # submodules which do not have their own setup.py
-    # we must manually add sub-submodules & tests
+    # 没有自己的setup.py的子模块
+    # 我们必须手动添加子子模块 & 测试
     config.add_subpackage('compose')
     config.add_subpackage('compose/tests')
     config.add_subpackage('covariance')
@@ -43,8 +43,8 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('semi_supervised')
     config.add_subpackage('semi_supervised/tests')
 
-    # submodules which have their own setup.py
-    # leave out "linear_model" and "utils" for now; add them after cblas below
+    # 有自己setup.py子模块
+    # 暂时省略“linear_model”和“utils”; 在下面的cblas之后添加它们
     config.add_subpackage('cluster')
     config.add_subpackage('datasets')
     config.add_subpackage('decomposition')
@@ -57,14 +57,14 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('tree')
     config.add_subpackage('svm')
 
-    # add cython extension module for isotonic regression
+    # 添加用于保序回归(isotonic regression)的Cython扩展模块
     config.add_extension('_isotonic',
                          sources=['_isotonic.pyx'],
                          include_dirs=[numpy.get_include()],
                          libraries=libraries,
                          )
 
-    # some libs needs cblas, fortran-compiled BLAS will not be sufficient
+    # 一些libs需要cblas，fortran编译的BLAS(fortran-compiled BLAS)是不够的
     blas_info = get_info('blas_opt', 0)
     if (not blas_info) or (
             ('NO_ATLAS_INFO', 1) in blas_info.get('define_macros', [])):
@@ -72,12 +72,12 @@ def configuration(parent_package='', top_path=None):
                            sources=[join('src', 'cblas', '*.c')])
         warnings.warn(BlasNotFoundError.__doc__)
 
-    # the following packages depend on cblas, so they have to be build
-    # after the above.
+    # 以下软件包依赖于 cblas
+    # 因此必须在上述版本之后进行构建
     config.add_subpackage('linear_model')
     config.add_subpackage('utils')
 
-    # add the test directory
+    # 添加测试目录
     config.add_subpackage('tests')
 
     maybe_cythonize_extensions(top_path, config)
