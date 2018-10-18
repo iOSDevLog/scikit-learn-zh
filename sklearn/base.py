@@ -1,4 +1,4 @@
-"""Base classes for all estimators."""
+"""所有估计器(estimators)的基类"""
 
 # Author: Gael Varoquaux <gael.varoquaux@normalesup.org>
 # License: BSD 3 clause
@@ -16,36 +16,36 @@ from . import __version__
 
 ##############################################################################
 def _first_and_last_element(arr):
-    """Returns first and last element of numpy array or sparse matrix."""
+    """返回numpy数组或稀疏矩阵(Sparse matrices)的第一个和最后一个元素。"""
     if isinstance(arr, np.ndarray) or hasattr(arr, 'data'):
-        # numpy array or sparse matrix with .data attribute
+        # 有.data属性的numpy的数组或稀疏矩阵
         data = arr.data if sparse.issparse(arr) else arr
         return data.flat[0], data.flat[-1]
     else:
-        # Sparse matrices without .data attribute. Only dok_matrix at
-        # the time of writing, in this case indexing is fast
+        # 没有.data属性的稀疏矩阵 只有在dok_matrix写时
+        # 在这种情况下，索引很快
         return arr[0, 0], arr[-1, -1]
 
 
 def clone(estimator, safe=True):
-    """Constructs a new estimator with the same parameters.
+    """构造一个具有相同参数的新估计器。
 
-    Clone does a deep copy of the model in an estimator
-    without actually copying attached data. It yields a new estimator
-    with the same parameters that has not been fit on any data.
+    clone在estimators中执行模型的深拷贝,
+    而不实际复制附加数据。
+    它生成一个新的estimators, 其参数与任何数据都不匹配。
 
-    Parameters
+    参数
     ----------
-    estimator : estimator object, or list, tuple or set of objects
-        The estimator or group of estimators to be cloned
+    estimator : 估算器对象，或对象的列表，元组，集合
+        要clone的estimators或estimators组
 
     safe : boolean, optional
-        If safe is false, clone will fall back to a deep copy on objects
-        that are not estimators.
+        如果 safe 是 false,
+        不是estimators的对象clone将回退到深拷贝。
 
     """
     estimator_type = type(estimator)
-    # XXX: not handling dictionaries
+    # XXX: 没有处理词典
     if estimator_type in (list, tuple, set, frozenset):
         return estimator_type([clone(e, safe=safe) for e in estimator])
     elif not hasattr(estimator, 'get_params'):
@@ -63,7 +63,7 @@ def clone(estimator, safe=True):
     new_object = klass(**new_object_params)
     params_set = new_object.get_params(deep=False)
 
-    # quick sanity check of the parameters of the clone
+    # 快速完整性检查克隆的参数
     for name in new_object_params:
         param1 = new_object_params[name]
         param2 = params_set[name]
@@ -76,22 +76,22 @@ def clone(estimator, safe=True):
 
 ###############################################################################
 def _pprint(params, offset=0, printer=repr):
-    """Pretty print the dictionary 'params'
+    """漂亮打印字典'params'
 
-    Parameters
+    参数
     ----------
     params : dict
-        The dictionary to pretty print
+        需要漂亮打印的字典
 
     offset : int
-        The offset in characters to add at the begin of each line.
+        要在每行开头添加的字符偏移量。
 
     printer : callable
-        The function to convert entries to strings, typically
-        the builtin str or repr
+        通常，将条目转换为字符串的函数
+        内置的str或repr
 
     """
-    # Do a multi-line justified repr:
+    # 做多行合理的repr：
     options = np.get_printoptions()
     np.set_printoptions(precision=5, threshold=64, edgeitems=2)
     params_list = list()
@@ -99,12 +99,12 @@ def _pprint(params, offset=0, printer=repr):
     line_sep = ',\n' + (1 + offset // 2) * ' '
     for i, (k, v) in enumerate(sorted(six.iteritems(params))):
         if type(v) is float:
-            # use str for representing floating point numbers
-            # this way we get consistent representation across
-            # architectures and versions.
+            # 使用 str 表示浮点数字
+            # 通过这种方式
+            # 我们可以在体系结构和版本之间实现一致的表示。
             this_repr = '%s=%s' % (k, str(v))
         else:
-            # use repr of the rest
+            # 使用其余的repr
             this_repr = '%s=%s' % (k, printer(v))
         if len(this_repr) > 500:
             this_repr = this_repr[:300] + '...' + this_repr[-100:]
@@ -120,36 +120,36 @@ def _pprint(params, offset=0, printer=repr):
 
     np.set_printoptions(**options)
     lines = ''.join(params_list)
-    # Strip trailing space to avoid nightmare in doctests
+    # 去除结尾空格以避免doctests中的噩梦
     lines = '\n'.join(l.rstrip(' ') for l in lines.split('\n'))
     return lines
 
 
 ###############################################################################
 class BaseEstimator(object):
-    """Base class for all estimators in scikit-learn
+    """scikit-learn中所有estimators的基类
 
     Notes
     -----
-    All estimators should specify all the parameters that can be set
-    at the class level in their ``__init__`` as explicit keyword
-    arguments (no ``*args`` or ``**kwargs``).
+    所有estimators都应指定
+    所有可在类级别`__init__`设置为显式关键字参数
+    (no ``*args`` or ``**kwargs``)
     """
 
     @classmethod
     def _get_param_names(cls):
-        """Get parameter names for the estimator"""
-        # fetch the constructor or the original constructor before
-        # deprecation wrapping if any
+        """获取estimator的参数名称"""
+        # 获取构造函数或之前的原始构造
+        # 弃用包装如有
         init = getattr(cls.__init__, 'deprecated_original', cls.__init__)
         if init is object.__init__:
-            # No explicit constructor to introspect
+            # 没有内省的显式构造函数
             return []
 
-        # introspect the constructor arguments to find the model parameters
-        # to represent
+        # 反思构造函数参数
+        # 以查找要表示的模型参数
         init_signature = signature(init)
-        # Consider the constructor parameters excluding 'self'
+        # 考虑不包括'self'的构造函数参数
         parameters = [p for p in init_signature.parameters.values()
                       if p.name != 'self' and p.kind != p.VAR_KEYWORD]
         for p in parameters:
@@ -160,22 +160,22 @@ class BaseEstimator(object):
                                    " %s with constructor %s doesn't "
                                    " follow this convention."
                                    % (cls, init_signature))
-        # Extract and sort argument names excluding 'self'
+        # 提取和排序参数名称，不包括'self'
         return sorted([p.name for p in parameters])
 
     def get_params(self, deep=True):
-        """Get parameters for this estimator.
+        """获取此estimator的参数。
 
         Parameters
         ----------
         deep : boolean, optional
-            If True, will return the parameters for this estimator and
-            contained subobjects that are estimators.
+            如果为 True
+            将返回此estimators的参数并包含估计值的子对象。
 
         Returns
         -------
-        params : mapping of string to any
-            Parameter names mapped to their values.
+        params : 将字符串映射到任意字符串
+            映射到其值的参数名称。
         """
         out = dict()
         for key in self._get_param_names():
@@ -187,23 +187,23 @@ class BaseEstimator(object):
         return out
 
     def set_params(self, **params):
-        """Set the parameters of this estimator.
+        """设置此estimator的参数。
 
-        The method works on simple estimators as well as on nested objects
-        (such as pipelines). The latter have parameters of the form
-        ``<component>__<parameter>`` so that it's possible to update each
-        component of a nested object.
+        该方法适用于简单estimators和嵌套对象
+        (如管道)。
+        后者具有窗体 ``<component>__<parameter>`` 的参数,
+        以便可以更新嵌套对象的每个组件。
 
         Returns
         -------
         self
         """
         if not params:
-            # Simple optimization to gain speed (inspect is slow)
+            # 简单优化以获得速度（检查速度慢）
             return self
         valid_params = self.get_params(deep=True)
 
-        nested_params = defaultdict(dict)  # grouped by prefix
+        nested_params = defaultdict(dict)  # 按前缀分组
         for key, value in params.items():
             key, delim, sub_key = key.partition('__')
             if key not in valid_params:
@@ -257,31 +257,31 @@ class BaseEstimator(object):
 
 ###############################################################################
 class ClassifierMixin(object):
-    """Mixin class for all classifiers in scikit-learn."""
+    """用于scikit-learn中所有分类器的Mixin类。"""
     _estimator_type = "classifier"
 
     def score(self, X, y, sample_weight=None):
-        """Returns the mean accuracy on the given test data and labels.
+        """返回给定测试数据和标签的平均精度。
 
-        In multi-label classification, this is the subset accuracy
-        which is a harsh metric since you require for each sample that
-        each label set be correctly predicted.
+        在多标签分类中,
+        这是一个苛刻指标的子集精度,
+        因为每个样本都需要正确预测每个标签集。
 
         Parameters
         ----------
         X : array-like, shape = (n_samples, n_features)
-            Test samples.
+            测试样品。
 
         y : array-like, shape = (n_samples) or (n_samples, n_outputs)
-            True labels for X.
+            X的真实标签。
 
         sample_weight : array-like, shape = [n_samples], optional
-            Sample weights.
+            样品权重。
 
         Returns
         -------
         score : float
-            Mean accuracy of self.predict(X) wrt. y.
+            self.predict（X）和 y 的平均精度。
 
         """
         from .metrics import accuracy_score
@@ -290,33 +290,33 @@ class ClassifierMixin(object):
 
 ###############################################################################
 class RegressorMixin(object):
-    """Mixin class for all regression estimators in scikit-learn."""
+    """用于scikit-learn中所有回归估计器的Mixin类。"""
     _estimator_type = "regressor"
 
     def score(self, X, y, sample_weight=None):
-        """Returns the coefficient of determination R^2 of the prediction.
+        """返回预测的确定系数 R^2.
 
-        The coefficient R^2 is defined as (1 - u/v), where u is the residual
-        sum of squares ((y_true - y_pred) ** 2).sum() and v is the total
-        sum of squares ((y_true - y_true.mean()) ** 2).sum().
-        The best possible score is 1.0 and it can be negative (because the
-        model can be arbitrarily worse). A constant model that always
-        predicts the expected value of y, disregarding the input features,
-        would get a R^2 score of 0.0.
+        系数 R^2 定义为 (1-u/v),
+        其中 u 是 ((y_true - y_pred) ** 2).sum() 剩余的平方和
+        v 是 ((y_true - y_true.mean()) ** 2).sum() 总平方和.
+        最好的评分是 1.0, 它可以是负数
+         (因为模型可以是任意恶化)。
+         始终预测 y 的预期值 (无视输入要素) 的常量模型
+        将获得 R^2 评分0.0。
 
         Parameters
         ----------
         X : array-like, shape = (n_samples, n_features)
-            Test samples. For some estimators this may be a
-            precomputed kernel matrix instead, shape = (n_samples,
-            n_samples_fitted], where n_samples_fitted is the number of
-            samples used in the fitting for the estimator.
+            测试样品。 这可能是预计的内核矩阵,
+            shape = (n_samples, n_samples_fitted],
+            其中 n_samples_fitted
+            是用于估计的拟合中使用的样本数。
 
         y : array-like, shape = (n_samples) or (n_samples, n_outputs)
-            True values for X.
+            X的真值。
 
         sample_weight : array-like, shape = [n_samples], optional
-            Sample weights.
+            样品权重。
 
         Returns
         -------
@@ -331,46 +331,46 @@ class RegressorMixin(object):
 
 ###############################################################################
 class ClusterMixin(object):
-    """Mixin class for all cluster estimators in scikit-learn."""
+    """用于scikit-learn中所有聚类估计器的Mixin类。"""
     _estimator_type = "clusterer"
 
     def fit_predict(self, X, y=None):
-        """Performs clustering on X and returns cluster labels.
+        """在X上执行聚类并返回聚类标签。
 
         Parameters
         ----------
         X : ndarray, shape (n_samples, n_features)
-            Input data.
+            输入数据。
 
         y : Ignored
-            not used, present for API consistency by convention.
+            未使用，按惯例提供API一致性。
 
         Returns
         -------
         labels : ndarray, shape (n_samples,)
-            cluster labels
+            聚类标签
         """
-        # non-optimized default implementation; override when a better
-        # method is possible for a given clustering algorithm
+        # 非优化的默认实现;
+        # 当给定的聚类算法可能有更好的方法时重写
         self.fit(X)
         return self.labels_
 
 
 class BiclusterMixin(object):
-    """Mixin class for all bicluster estimators in scikit-learn"""
+    """scikit-learn中用于混合类所有双向估计器"""
 
     @property
     def biclusters_(self):
-        """Convenient way to get row and column indicators together.
+        """将行和列索引放在一起的便捷方式。
 
-        Returns the ``rows_`` and ``columns_`` members.
+        返回``rows_``和``columns_``成员。
         """
         return self.rows_, self.columns_
 
     def get_indices(self, i):
-        """Row and column indices of the i'th bicluster.
+        """第i个双向聚类的行和列索引。
 
-        Only works if ``rows_`` and ``columns_`` attributes exist.
+        仅当存在``rows_``和``columns_``属性时才有效。
 
         Parameters
         ----------
@@ -380,9 +380,9 @@ class BiclusterMixin(object):
         Returns
         -------
         row_ind : np.array, dtype=np.intp
-            Indices of rows in the dataset that belong to the bicluster.
+            数据集中属于双向聚类的行的索引。
         col_ind : np.array, dtype=np.intp
-            Indices of columns in the dataset that belong to the bicluster.
+            数据集中属于双向聚类的列的索引。
 
         """
         rows = self.rows_[i]
@@ -390,40 +390,40 @@ class BiclusterMixin(object):
         return np.nonzero(rows)[0], np.nonzero(columns)[0]
 
     def get_shape(self, i):
-        """Shape of the i'th bicluster.
+        """聚类 i 的形状。
 
         Parameters
         ----------
         i : int
-            The index of the cluster.
+            聚类的索引。
 
         Returns
         -------
         shape : (int, int)
-            Number of rows and columns (resp.) in the bicluster.
+            双向聚类中的行数和列数（分别）。
         """
         indices = self.get_indices(i)
         return tuple(len(i) for i in indices)
 
     def get_submatrix(self, i, data):
-        """Returns the submatrix corresponding to bicluster `i`.
+        """返回对应于双向聚类`i`的子矩阵。
 
         Parameters
         ----------
         i : int
-            The index of the cluster.
+            聚类的索引。
         data : array
-            The data.
+            数据。
 
         Returns
         -------
         submatrix : array
-            The submatrix corresponding to bicluster i.
+            子矩阵对应于双向聚类i。
 
         Notes
         -----
-        Works with sparse matrices. Only works if ``rows_`` and
-        ``columns_`` attributes exist.
+        适用于稀疏矩阵。
+        只有``rows_``和 ``columns_``属性存在。
         """
         from .utils.validation import check_array
         data = check_array(data, accept_sparse='csr')
@@ -433,44 +433,44 @@ class BiclusterMixin(object):
 
 ###############################################################################
 class TransformerMixin(object):
-    """Mixin class for all transformers in scikit-learn."""
+    """scikit-learn中所有转换器的Mixin类。"""
 
     def fit_transform(self, X, y=None, **fit_params):
-        """Fit to data, then transform it.
+        """拟合数据，然后转换它。
 
-        Fits transformer to X and y with optional parameters fit_params
-        and returns a transformed version of X.
+        使用可选参数fit_params转换转换X和y
+        并返回X的转换版本。
 
         Parameters
         ----------
         X : numpy array of shape [n_samples, n_features]
-            Training set.
+            训练集。
 
         y : numpy array of shape [n_samples]
-            Target values.
+            目标值。
 
         Returns
         -------
         X_new : numpy array of shape [n_samples, n_features_new]
-            Transformed array.
+            转换后的numpy数组
 
         """
-        # non-optimized default implementation; override when a better
-        # method is possible for a given clustering algorithm
+        # 非优化的默认实现
+        # 当给定的聚类算法可能有更好的方法时重写
         if y is None:
-            # fit method of arity 1 (unsupervised transformation)
+            # 元数1的拟合方法（无监督转换）
             return self.fit(X, **fit_params).transform(X)
         else:
-            # fit method of arity 2 (supervised transformation)
+            # 元数2的拟合方法（监督变换）
             return self.fit(X, y, **fit_params).transform(X)
 
 
 class DensityMixin(object):
-    """Mixin class for all density estimators in scikit-learn."""
+    """用于scikit-learn中所有密度估计器的Mixin类。"""
     _estimator_type = "DensityEstimator"
 
     def score(self, X, y=None):
-        """Returns the score of the model on the data X
+        """返回数据X上模型的分数
 
         Parameters
         ----------
@@ -484,26 +484,26 @@ class DensityMixin(object):
 
 
 class OutlierMixin(object):
-    """Mixin class for all outlier detection estimators in scikit-learn."""
+    """用于scikit-learn中所有异常值检测估计器的Mixin类。"""
     _estimator_type = "outlier_detector"
 
     def fit_predict(self, X, y=None):
-        """Performs outlier detection on X.
+        """在X上执行异常值检测。
 
-        Returns -1 for outliers and 1 for inliers.
+        对于异常值，返回-1，对于正常值，返回1。
 
         Parameters
         ----------
         X : ndarray, shape (n_samples, n_features)
-            Input data.
+            输入数据。
 
         y : Ignored
-            not used, present for API consistency by convention.
+            未使用，按惯例提供API一致性。
 
         Returns
         -------
         y : ndarray, shape (n_samples,)
-            1 for inliers, -1 for outliers.
+           正常值返回1，异常值返回-1。
         """
         # override for transductive outlier detectors like LocalOulierFactor
         return self.fit(X).predict(X)
@@ -511,55 +511,55 @@ class OutlierMixin(object):
 
 ###############################################################################
 class MetaEstimatorMixin(object):
-    """Mixin class for all meta estimators in scikit-learn."""
-    # this is just a tag for the moment
+    """用于scikit-learn中所有元估计的Mixin类。"""
+    # 这只是暂时的标签
 
 
 ###############################################################################
 
 def is_classifier(estimator):
-    """Returns True if the given estimator is (probably) a classifier.
+    """如果给定的估计器（可能）是分类器，则返回True。
 
     Parameters
     ----------
     estimator : object
-        Estimator object to test.
+        要测试的Estimator对象。
 
     Returns
     -------
     out : bool
-        True if estimator is a classifier and False otherwise.
+        如果estimator是分类器，则为True，否则为False。
     """
     return getattr(estimator, "_estimator_type", None) == "classifier"
 
 
 def is_regressor(estimator):
-    """Returns True if the given estimator is (probably) a regressor.
+    """如果给定的估计器（可能）是回归器，则返回True。
 
     Parameters
     ----------
     estimator : object
-        Estimator object to test.
+        要测试的Estimator对象。
 
     Returns
     -------
     out : bool
-        True if estimator is a regressor and False otherwise.
+        如果estimator是回归器，则为True，否则为False。
     """
     return getattr(estimator, "_estimator_type", None) == "regressor"
 
 
 def is_outlier_detector(estimator):
-    """Returns True if the given estimator is (probably) an outlier detector.
+    """如果给定的estimator（可能）是异常值检测器，则返回True。
 
     Parameters
     ----------
     estimator : object
-        Estimator object to test.
+        要测试的Estimator对象。
 
     Returns
     -------
     out : bool
-        True if estimator is an outlier detector and False otherwise.
+        如果estimator是异常值检测器，则为True，否则为False。
     """
     return getattr(estimator, "_estimator_type", None) == "outlier_detector"
